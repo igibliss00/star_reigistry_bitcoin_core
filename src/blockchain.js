@@ -65,11 +65,11 @@ class Blockchain {
     return new Promise(async (resolve, reject) => {
       let newBlock = block;
 
-      // add time, hash, and height
+      // add time and height
       newBlock.time = new Date().getTime().toString().slice(0, -3);
-      newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
       let height = await self.getChainHeight();
       newBlock.height = height + 1;
+      this.height = this.height + 1;
 
       // not a genesis block
       if (height >= 0) {
@@ -77,6 +77,8 @@ class Blockchain {
         let prevBlock = self.chain[self.height];
         newBlock.previousBlockHash = prevBlock.hash;
       }
+
+      newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
 
       // add to blockchain
       self.chain.push(newBlock);
@@ -94,7 +96,8 @@ class Blockchain {
    */
   requestMessageOwnershipVerification(address) {
     return new Promise((resolve) => {
-      let msg = `${address}:${new Date().getTime
+      let msg = `${address}:${new Date()
+        .getTime()
         .toString()
         .slice(0, -3)}:starReigstry`;
       resolve(msg);
@@ -189,8 +192,8 @@ class Blockchain {
   getStarsByWalletAddress(address) {
     let self = this;
     return new Promise((resolve, reject) => {
-      let stars = self.chain.filter((p) => {
-        let star = p.getBData();
+      let stars = self.chain.filter(async (p) => {
+        let star = await p.getBData();
         if (star.owner === address) {
           return star;
         }
