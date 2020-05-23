@@ -69,10 +69,9 @@ class Blockchain {
       newBlock.time = new Date().getTime().toString().slice(0, -3);
       let height = await self.getChainHeight();
       newBlock.height = height + 1;
-      this.height = this.height + 1;
 
       // not a genesis block
-      if (height >= 0) {
+      if (height > 0) {
         // add previous block hash
         let prevBlock = self.chain[self.height];
         newBlock.previousBlockHash = prevBlock.hash;
@@ -82,7 +81,12 @@ class Blockchain {
 
       // add to blockchain
       self.chain.push(newBlock);
-      resolve(newBlock);
+      this.height = this.height + 1;
+      try {
+        resolve(newBlock);
+      } catch {
+        reject("There was an error adding the block");
+      }
     });
   }
 
@@ -129,7 +133,7 @@ class Blockchain {
       // current time
       let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
       // getTime() returns millisecond (1/1000 second)
-      if (currentTime - msgTime < 300000) {
+      if (currentTime - msgTime < 5 * 60000) {
         //verify the message with wallet address/signature
         if (bitcoinMessage.verify(message, address, signature)) {
           // create the block
